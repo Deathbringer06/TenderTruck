@@ -84,7 +84,7 @@ function validate(input: unknown): Array<{ loc: string[]; msg: string; type: str
     addError('contact_person', 'Input should be a valid string', 'string_type')
   }
   if (body.phone !== undefined && body.phone !== null && (typeof body.phone !== 'string' || !/^\+996\d{9}$/.test(body.phone))) {
-    addError('phone', 'String should match pattern '^\\+996\\d{9}$'', 'string_pattern_mismatch')
+    addError('phone', 'String should match the required pattern', 'string_pattern_mismatch')
   }
   if (body.address !== undefined && body.address !== null && typeof body.address !== 'string') {
     addError('address', 'Input should be a valid string', 'string_type')
