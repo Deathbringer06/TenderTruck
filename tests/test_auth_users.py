@@ -85,3 +85,70 @@ def test_duplicate_phone_on_profile_update(client):
     token = client.post("/api/v1/auth/login", json={"email": "user@example.com", "password": "StrongPassword123!"}).json()["access_token"]
     response = client.put("/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}, json={"phone": "+996700000002"})
     assert response.status_code == 400
+
+
+def test_register_duplicate_inn(client):
+    assert client.post("/api/v1/auth/register", json=registration_payload()).status_code == 201
+
+    duplicate = client.post(
+        "/api/v1/auth/register",
+        json=registration_payload(email="other@example.com", phone="+996700000002"),
+    )
+    assert duplicate.status_code == 400
+
+
+def test_profile_update_persists_all_editable_fields(client):
+    client.post("/api/v1/auth/register", json=registration_payload())
+    token = client.post(
+        "/api/v1/auth/login",
+        json={"email": "user@example.com", "password": "StrongPassword123!"},
+    ).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+    values = {
+        "company_name": "Tender Truck",
+        "description": "Company description",
+        "contact_person": "Ivan",
+        "address": "Bishkek",
+        "phone": "+996700000002",
+    }
+
+    response = client.put("/api/v1/users/me", headers=headers, json=values)
+    assert response.status_code == 200
+    assert {field: response.json()[field] for field in values} == values
+
+    profile = client.get("/api/v1/users/me", headers=headers)
+    assert {field: profile.json()[field] for field in values} == values
+
+
+def test_profile_update_does_not_change_immutable_fields(client):
+    client.post("/api/v1/auth/register", json=registration_payload())
+    token = client.post(
+        "/api/v1/auth/login",
+        json={"email": "user@example.com", "password": "StrongPassword123!"},
+    ).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.put(
+        "/api/v1/users/me",
+        headers=headers,
+        json={"email": "changed@example.com", "inn": "987654321098", "role": "perevozchik"},
+    )
+    assert response.status_code == 200
+    assert response.json()["email"] == "user@example.com"
+    assert response.json()["inn"] == "123456789012"
+    assert response.json()["role"] == "zakazchik"
+
+
+def test_profile_update_rejects_invalid_phone_format(client):
+    client.post("/api/v1/auth/register", json=registration_payload())
+    token = client.post(
+        "/api/v1/auth/login",
+        json={"email": "user@example.com", "password": "StrongPassword123!"},
+    ).json()["access_token"]
+
+    response = client.put(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"phone": "0700000001"},
+    )
+    assert response.status_code == 422
