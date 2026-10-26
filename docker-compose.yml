@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: tender_postgres
+    env_file: [.env]
+    ports: ["${DB_PORT:-5432}:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+  backend:
+    build: .
+    container_name: tender_fastapi
+    command: sh -c "alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes: [.:/app]
+    ports: ["8000:8000"]
+    env_file: [.env]
+    depends_on: [db]
+  frontend:
+    image: nginx:alpine
+    container_name: tender_frontend
+    ports: ["80:80"]
+    volumes: [./frontend:/usr/share/nginx/html]
+    depends_on: [backend]
+volumes:
+  postgres_data:
