@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { CabinetLayout } from '../features/cabinet/CabinetLayout'
 import { ProfilePage } from '../features/profile/ProfilePage'
+import { DevLoginPage as RealBackendDevLoginPage } from './DevLoginPage'
 
 const mocksEnabled = import.meta.env.VITE_USE_MOCKS === 'true'
+const realBackendDevLoginEnabled = import.meta.env.DEV && !mocksEnabled
 
 export function AuthGuard() {
   const [hasToken, setHasToken] = useState(
@@ -30,11 +32,7 @@ export function AuthGuard() {
   return <Outlet />
 }
 
-export function DevLoginPage() {
-  if (!mocksEnabled) {
-    return <Navigate to="/login" replace />
-  }
-
+function MockDevLoginPage() {
   function signIn(role: 'zakazchik' | 'perevozchik') {
     localStorage.setItem('access_token', `dev-token:${role}`)
     window.location.assign('/cabinet/profile')
@@ -77,7 +75,12 @@ const routes = [
       },
     ],
   },
-  { path: '/dev-login', element: <DevLoginPage /> },
+  ...(realBackendDevLoginEnabled
+    ? [{ path: '/dev-login', element: <RealBackendDevLoginPage /> }]
+    : []),
+  ...(import.meta.env.DEV && mocksEnabled
+    ? [{ path: '/dev-login', element: <MockDevLoginPage /> }]
+    : []),
   { path: '/login', element: <Navigate to="/dev-login" replace /> },
   { path: '*', element: <Navigate to="/cabinet/profile" replace /> },
 ]
