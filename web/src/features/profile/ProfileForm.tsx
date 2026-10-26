@@ -11,6 +11,14 @@ import { updateMyProfile } from './api'
 import { profileSchema } from './schema'
 import type { UpdateProfileInput, UserProfile } from './types'
 
+type ProfileFormValues = {
+  company_name: string
+  description: string
+  contact_person: string
+  phone: string
+  address: string
+}
+
 interface ProfileFormProps {
   initialData: UserProfile
 }
@@ -20,25 +28,25 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   const [submitMessage, setSubmitMessage] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const form = useForm<UpdateProfileInput>({
+  const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     mode: 'onBlur',
     defaultValues: {
-      company_name: initialData.company_name,
-      description: initialData.description,
-      contact_person: initialData.contact_person,
+      company_name: initialData.company_name ?? '',
+      description: initialData.description ?? '',
+      contact_person: initialData.contact_person ?? '',
       phone: initialData.phone,
-      address: initialData.address,
+      address: initialData.address ?? '',
     },
   })
 
   useEffect(() => {
     form.reset({
-      company_name: initialData.company_name,
-      description: initialData.description,
-      contact_person: initialData.contact_person,
+      company_name: initialData.company_name ?? '',
+      description: initialData.description ?? '',
+      contact_person: initialData.contact_person ?? '',
       phone: initialData.phone,
-      address: initialData.address,
+      address: initialData.address ?? '',
     })
   }, [form, initialData])
 
@@ -56,7 +64,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
       setSubmitMessage(null)
       if (error && typeof error === 'object' && 'fieldErrors' in error) {
         Object.entries(error.fieldErrors ?? {}).forEach(([field, message]) => {
-          form.setError(field as keyof UpdateProfileInput, {
+          form.setError(field as keyof ProfileFormValues, {
             type: 'server',
             message,
           })
@@ -70,11 +78,11 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
   function handleCancel() {
     form.reset({
-      company_name: initialData.company_name,
-      description: initialData.description,
-      contact_person: initialData.contact_person,
+      company_name: initialData.company_name ?? '',
+      description: initialData.description ?? '',
+      contact_person: initialData.contact_person ?? '',
       phone: initialData.phone,
-      address: initialData.address,
+      address: initialData.address ?? '',
     })
     form.clearErrors()
     setSubmitMessage(null)
@@ -82,7 +90,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   }
 
   return (
-    <form className="panel-card" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+    <form className="panel-card" onSubmit={form.handleSubmit((values) => mutation.mutate(values as UpdateProfileInput))}>
       <div className="panel-header">
         <div>
           <h2>Редактирование профиля</h2>

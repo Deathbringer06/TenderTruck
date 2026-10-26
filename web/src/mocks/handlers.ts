@@ -64,30 +64,30 @@ function validate(input: unknown): Array<{ loc: string[]; msg: string; type: str
     return [{ loc: ['body'], msg: 'Ожидался объект профиля.', type: 'value_error' }]
   }
 
-  const body = input as Partial<UpdateProfileInput>
+  const body = input as UpdateProfileInput
   const errors: Array<{ loc: string[]; msg: string; type: string }> = []
   const addError = (field: keyof UpdateProfileInput, msg: string, type: string) => {
     errors.push({ loc: ['body', field], msg, type })
   }
 
-  if (typeof body.company_name !== 'string' || body.company_name.trim().length < 2) {
-    addError('company_name', 'Введите не менее 2 символов.', 'value_error')
-  } else if (body.company_name.trim().length > 120) {
-    addError('company_name', 'Не более 120 символов.', 'value_error')
+  if (body.company_name !== undefined && body.company_name !== null && body.company_name.length < 2) {
+    addError('company_name', 'String should have at least 2 characters', 'string_too_short')
+  } else if (typeof body.company_name === 'string' && body.company_name.length > 120) {
+    addError('company_name', 'String should have at most 120 characters', 'string_too_long')
   }
-  if (typeof body.description !== 'string') {
-    addError('description', 'Введите текстовое описание.', 'string_type')
-  } else if (body.description.length > 1000) {
-    addError('description', 'Не более 1000 символов.', 'value_error')
+  if (body.description !== undefined && body.description !== null && typeof body.description !== 'string') {
+    addError('description', 'Input should be a valid string', 'string_type')
+  } else if (typeof body.description === 'string' && body.description.length > 1000) {
+    addError('description', 'String should have at most 1000 characters', 'string_too_long')
   }
-  if (typeof body.contact_person !== 'string') {
-    addError('contact_person', 'Введите контактное лицо.', 'string_type')
+  if (body.contact_person !== undefined && body.contact_person !== null && typeof body.contact_person !== 'string') {
+    addError('contact_person', 'Input should be a valid string', 'string_type')
   }
-  if (typeof body.phone !== 'string' || !/^\+996\d{9}$/.test(body.phone)) {
-    addError('phone', 'Введите номер в формате +996XXXXXXXXX.', 'value_error')
+  if (body.phone !== undefined && body.phone !== null && (typeof body.phone !== 'string' || !/^\+996\d{9}$/.test(body.phone))) {
+    addError('phone', 'String should match pattern '^\\+996\\d{9}$'', 'string_pattern_mismatch')
   }
-  if (typeof body.address !== 'string') {
-    addError('address', 'Введите адрес.', 'string_type')
+  if (body.address !== undefined && body.address !== null && typeof body.address !== 'string') {
+    addError('address', 'Input should be a valid string', 'string_type')
   }
   return errors
 }

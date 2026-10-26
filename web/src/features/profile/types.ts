@@ -7,16 +7,16 @@ export interface UserProfile {
   role: UserRole
   inn: string
   is_verified: boolean
-  company_name: string
-  description: string
-  contact_person: string
-  address: string
+  company_name: string | null
+  description: string | null
+  contact_person: string | null
+  address: string | null
 }
 
 export interface UpdateProfileInput {
-  company_name: string
-  description: string
-  contact_person: string
-  phone: string
-  address: string
+  company_name?: string | null
+  description?: string | null
+  contact_person?: string | null
+  phone?: string | null
+  address?: string | null
 }
