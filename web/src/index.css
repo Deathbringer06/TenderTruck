@@ -95,6 +95,24 @@ h2 {
   margin-top: 24px;
 }
 
+.auth-switch {
+  margin-top: 20px;
+  color: #52607a;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: #0f6fd7;
+  font-weight: 600;
+}
+
+.logout-button {
+  border: 0;
+  background: transparent;
+  color: #0f6fd7;
+  font-weight: 600;
+}
+
 .button {
   border: none;
   border-radius: 12px;
@@ -232,6 +250,13 @@ h2 {
 .nav-link-active {
   background: #edf5ff;
   color: #0f7efb;
+}
+
+.sidebar-logout {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
 .nav-icon {

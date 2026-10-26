@@ -52,7 +52,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   }
 
   const response = await fetch(`${baseURL}${path}`, { ...init, headers })
-  if (response.status === 401) {
+  if (response.status === 401 && token) {
     localStorage.removeItem('access_token')
     window.dispatchEvent(new Event('auth:unauthorized'))
   }

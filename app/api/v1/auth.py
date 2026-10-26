@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    if db.query(models.User).filter(models.User.email == user.email).first():
+    if db.query(models.User).filter(func.lower(models.User.email) == user.email).first():
         raise HTTPException(status_code=400, detail="Пользователь с таким email уже зарегистрирован")
     if db.query(models.User).filter(models.User.inn == user.inn).first():
         raise HTTPException(status_code=400, detail="Компания с таким ИНН уже зарегистрирована в системе")
@@ -36,7 +37,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=schemas.Token)
 def login(credentials: schemas.LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == credentials.email).first()
+    user = db.query(models.User).filter(func.lower(models.User.email) == credentials.email).first()
     if user is None or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Неверный email или пароль", headers={"WWW-Authenticate": "Bearer"})
     return {"access_token": create_access_token(str(user.id)), "token_type": "bearer"}

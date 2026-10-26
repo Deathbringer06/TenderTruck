@@ -17,6 +17,6 @@ export interface UpdateProfileInput {
   company_name?: string | null
   description?: string | null
   contact_person?: string | null
-  phone?: string | null
+  phone?: string
   address?: string | null
 }

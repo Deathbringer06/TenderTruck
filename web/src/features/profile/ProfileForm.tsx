@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { Alert } from '../../shared/ui/Alert'
 import { Button } from '../../shared/ui/Button'
 import { Field } from '../../shared/ui/Field'
@@ -50,8 +50,8 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     })
   }, [form, initialData])
 
-  const descriptionValue = form.getValues('description') ?? ''
-  const descriptionLength = useMemo(() => descriptionValue.length, [descriptionValue])
+  const descriptionValue = useWatch({ control: form.control, name: 'description' }) ?? ''
+  const descriptionLength = descriptionValue.length
 
   const mutation = useMutation({
     mutationFn: updateMyProfile,

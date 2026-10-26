@@ -1,23 +1,36 @@
 services:
   db:
     image: postgres:15-alpine
-    container_name: tender_postgres
-    env_file: [.env]
-    ports: ["${DB_PORT:-5432}:5432"]
-    volumes: [postgres_data:/var/lib/postgresql/data]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-tender_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tender_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   backend:
     build: .
-    container_name: tender_fastapi
-    command: sh -c "alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-    volumes: [.:/app]
-    ports: ["8000:8000"]
-    env_file: [.env]
-    depends_on: [db]
+    command: sh -c "alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:change-me@db:5432/tender_db}
+      SECRET_KEY: ${SECRET_KEY:-local-development-only-change-this-secret-key}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
   frontend:
-    image: nginx:alpine
-    container_name: tender_frontend
-    ports: ["80:80"]
-    volumes: [./frontend:/usr/share/nginx/html]
+    build:
+      context: ./web
+    ports:
+      - "${WEB_PORT:-8081}:80"
     depends_on: [backend]
 volumes:
   postgres_data:
