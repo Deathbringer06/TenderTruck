@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тендеры — TenderTruck</title>
+    <style>
+        body { font: 16px Arial, sans-serif; margin: 24px auto; padding: 0 16px; max-width: 900px; color: #222; }
+        input, button { margin: 4px; padding: 8px; }
+        input { max-width: 250px; }
+        section, article { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        article button { width: auto; }
+        .hidden { display: none; }
+        #message { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Тендеры TenderTruck</h1>
+    <p><a href="/">Выйти на страницу входа</a> <button id="logout">Выйти</button></p>
+    <p id="message"></p>
+
+    <section id="customerPanel" class="hidden">
+        <h2>Создать тендер</h2>
+        <form id="createForm">
+            <input name="point_a" placeholder="Точка A" required maxlength="255">
+            <input name="point_b" placeholder="Точка B" required maxlength="255">
+            <input name="cargo_weight" type="number" step="any" min="0.01" placeholder="Вес, кг">
+            <input name="cargo_volume" type="number" step="any" min="0.01" placeholder="Объём, м³">
+            <input name="body_type" placeholder="Тип кузова" maxlength="100">
+            <label>Погрузка <input name="loading_date" type="datetime-local" required></label>
+            <label>Выгрузка <input name="unloading_date" type="datetime-local"></label>
+            <input name="start_price" type="number" step="any" min="0.01" placeholder="Начальная цена" required>
+            <button type="submit">Опубликовать</button>
+        </form>
+        <h2>Мои тендеры</h2>
+        <div id="myTenders"></div>
+    </section>
+
+    <section id="carrierPanel" class="hidden">
+        <h2>Открытые тендеры</h2>
+        <div id="openTenders"></div>
+    </section>
+
+    <section id="detailPanel" class="hidden">
+        <h2>Карточка тендера</h2>
+        <div id="tenderDetail"></div>
+    </section>
+
+<script>
+    const token = localStorage.getItem('tendertruck_access_token');
+    const authHeaders = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    const message = document.getElementById('message');
+    const customerPanel = document.getElementById('customerPanel');
+    const carrierPanel = document.getElementById('carrierPanel');
+    const detailPanel = document.getElementById('detailPanel');
+
+    document.getElementById('logout').addEventListener('click', () => {
+        localStorage.removeItem('tendertruck_access_token');
+        window.location.href = '/';
+    });
+
+    async function api(path, options = {}) {
+        const response = await fetch(`/api/v1${path}`, {
+            ...options,
+            headers: { ...authHeaders, ...(options.headers || {}) }
+        });
+        const data = response.status === 204 ? null : await response.json();
+        if (!response.ok) throw new Error(data?.detail || `Ошибка ${response.status}`);
+        return data;
+    }
+
+    function showMessage(text) { message.textContent = text || ''; }
+    function formatDate(value) { return value ? new Date(value).toLocaleString('ru-RU') : '—'; }
+
+    function tenderCard(tender, carrier = false) {
+        const card = document.createElement('article');
+        const title = document.createElement('h3');
+        title.textContent = `${tender.point_a} → ${tender.point_b}`;
+        card.append(title);
+        const summary = document.createElement('p');
+        summary.textContent = `Статус: ${tender.status}; цена: ${tender.start_price}; погрузка: ${formatDate(tender.loading_date)}`;
+        card.append(summary);
+        const details = document.createElement('button');
+        details.textContent = 'Открыть карточку';
+        details.addEventListener('click', () => showTender(tender.id));
+        card.append(details);
+        if (!carrier && tender.status === 'open') {
+            const edit = document.createElement('button');
+            edit.textContent = 'Редактировать';
+            edit.addEventListener('click', async () => {
+                const pointB = prompt('Точка B', tender.point_b);
+                if (pointB === null) return;
+                try { await api(`/tenders/${tender.id}`, { method: 'PATCH', body: JSON.stringify({ point_b: pointB }) }); await loadMyTenders(); showMessage('Тендер обновлён'); }
+                catch (error) { showMessage(error.message); }
+            });
+            const remove = document.createElement('button');
+            remove.textContent = 'Удалить';
+            remove.addEventListener('click', async () => {
+                if (!confirm('Удалить тендер?')) return;
+                try { await api(`/tenders/${tender.id}`, { method: 'DELETE' }); await loadMyTenders(); showMessage('Тендер удалён'); }
+                catch (error) { showMessage(error.message); }
+            });
+            card.append(edit, remove);
+        }
+        return card;
+    }
+
+    async function loadMyTenders() {
+        const items = await api('/tenders/my');
+        const container = document.getElementById('myTenders');
+        container.replaceChildren(...items.map(item => tenderCard(item)));
+    }
+
+    async function loadOpenTenders() {
+        const items = await api('/tenders/open');
+        const container = document.getElementById('openTenders');
+        container.replaceChildren(...items.map(item => tenderCard(item, true)));
+    }
+
+    async function showTender(id) {
+        try {
+            const tender = await api(`/tenders/${id}`);
+            const container = document.getElementById('tenderDetail');
+            container.replaceChildren();
+            const fields = {
+                'ID': tender.id, 'Заказчик ID': tender.customer_id, 'Точка A': tender.point_a,
+                'Точка B': tender.point_b, 'Вес': tender.cargo_weight ?? '—',
+                'Объём': tender.cargo_volume ?? '—', 'Тип кузова': tender.body_type ?? '—',
+                'Погрузка': formatDate(tender.loading_date), 'Выгрузка': formatDate(tender.unloading_date),
+                'Начальная цена': tender.start_price, 'Статус': tender.status,
+                'Создан': formatDate(tender.created_at)
+            };
+            Object.entries(fields).forEach(([label, value]) => {
+                const row = document.createElement('p');
+                row.textContent = `${label}: ${value}`;
+                container.append(row);
+            });
+            detailPanel.classList.remove('hidden');
+            detailPanel.scrollIntoView({ behavior: 'smooth' });
+        } catch (error) { showMessage(error.message); }
+    }
+
+    document.getElementById('createForm').addEventListener('submit', async event => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        const payload = Object.fromEntries(form.entries());
+        ['cargo_weight', 'cargo_volume', 'start_price'].forEach(key => payload[key] = payload[key] === '' ? null : Number(payload[key]));
+        ['cargo_weight', 'cargo_volume'].forEach(key => { if (payload[key] === null) delete payload[key]; });
+        ['body_type', 'unloading_date'].forEach(key => { if (!payload[key]) delete payload[key]; });
+        try {
+            await api('/tenders', { method: 'POST', body: JSON.stringify(payload) });
+            event.currentTarget.reset();
+            await loadMyTenders();
+            showMessage('Тендер опубликован');
+        } catch (error) { showMessage(error.message); }
+    });
+
+    async function init() {
+        if (!token) { window.location.href = '/'; return; }
+        try {
+            const user = await api('/users/me');
+            if (user.role === 'zakazchik') { customerPanel.classList.remove('hidden'); await loadMyTenders(); }
+            if (user.role === 'perevozchik') { carrierPanel.classList.remove('hidden'); await loadOpenTenders(); }
+        } catch (error) {
+            showMessage(error.message);
+            if (error.message.includes('учетные данные')) { localStorage.removeItem('tendertruck_access_token'); }
+        }
+    }
+    init();
+</script>
+</body>
+</html>

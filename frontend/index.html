@@ -133,6 +133,30 @@
             showAlert('Не удалось связаться с сервером');
         }
     });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+        try {
+            const res = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                showAlert(data.detail || 'Ошибка входа');
+                return;
+            }
+            localStorage.setItem('tendertruck_access_token', data.access_token);
+            window.location.href = '/tenders.html';
+        } catch (err) {
+            showAlert('Не удалось связаться с сервером');
+        }
+    });
 </script>
 </body>
 </html>
