@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models import UserRole
@@ -44,3 +47,43 @@ class UserProfileUpdate(BaseModel):
     contact_person: str | None = None
     phone: str | None = Field(default=None, pattern=r"^\+996\d{9}$")
     address: str | None = None
+
+
+class TenderCreate(BaseModel):
+    point_a: str = Field(min_length=1, max_length=255)
+    point_b: str = Field(min_length=1, max_length=255)
+    cargo_weight: float | None = Field(default=None, gt=0)
+    cargo_volume: float | None = Field(default=None, gt=0)
+    body_type: str | None = Field(default=None, max_length=100)
+    loading_date: datetime
+    unloading_date: datetime | None = None
+    start_price: float = Field(gt=0)
+
+
+class TenderUpdate(BaseModel):
+    point_a: str | None = Field(default=None, min_length=1, max_length=255)
+    point_b: str | None = Field(default=None, min_length=1, max_length=255)
+    cargo_weight: float | None = Field(default=None, gt=0)
+    cargo_volume: float | None = Field(default=None, gt=0)
+    body_type: str | None = Field(default=None, max_length=100)
+    loading_date: datetime | None = None
+    unloading_date: datetime | None = None
+    start_price: float | None = Field(default=None, gt=0)
+    status: Literal["open", "closed", "completed"] | None = None
+
+
+class TenderResponse(BaseModel):
+    id: int
+    customer_id: int
+    point_a: str
+    point_b: str
+    cargo_weight: float | None
+    cargo_volume: float | None
+    body_type: str | None
+    loading_date: datetime
+    unloading_date: datetime | None
+    start_price: float
+    status: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
