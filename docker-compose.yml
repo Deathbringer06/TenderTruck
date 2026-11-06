@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:17
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d tendertruck"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    container_name: tendertruck-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app}
+      POSTGRES_DB: ${DB_NAME:-tendertruck}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tendertruck-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://app:app@postgres:5432/tendertruck
+      PORT: 8000
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
