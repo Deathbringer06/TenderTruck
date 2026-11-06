@@ -1,0 +1,1 @@
+{"extraPaths":["./backend"],"include":["backend/src","backend/tests"],"exclude":["**/__pycache__",".venv","web/node_modules"]}
