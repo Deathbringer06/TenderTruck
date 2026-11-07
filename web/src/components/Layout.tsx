@@ -1,4 +1,4 @@
-import { LogOut, PackageSearch } from "lucide-react";
+import { LogOut, PackageSearch, User } from "lucide-react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { clearToken, getEmail } from "../lib/auth";
 
@@ -23,6 +23,13 @@ export function Layout() {
             className="flex h-10 items-center rounded-control border border-[#e1e3e5] bg-[#f7f8f9] px-3 text-sm font-medium"
           >
             Tenders
+          </a>
+          <a
+            href="/profile"
+            className="mt-2 flex h-10 items-center gap-2 rounded-control border border-[#e1e3e5] bg-[#f7f8f9] px-3 text-sm font-medium"
+          >
+            <User size={16} />
+            Profile
           </a>
         </nav>
       </aside>
