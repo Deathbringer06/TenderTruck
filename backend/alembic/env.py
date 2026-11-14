@@ -13,8 +13,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from src.app.config.settings import settings  # noqa: E402
 from src.app.db.base import Base  # noqa: E402
 from src.modules.auth import models as auth_models  # noqa: E402,F401
+from src.modules.auto_bids import models as auto_bid_models  # noqa: E402,F401
 from src.modules.bids import models as bid_models  # noqa: E402,F401
+from src.modules.companies import models as company_models  # noqa: E402,F401
 from src.modules.dictionaries import models as dictionary_models  # noqa: E402,F401
+from src.modules.scoring import models as scoring_models  # noqa: E402,F401
 from src.modules.tenders import models as tender_models  # noqa: E402,F401
 
 config = context.config

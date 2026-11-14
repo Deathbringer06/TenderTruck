@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; color: #222; margin: 48px; }
+    h1 { font-size: 22px; text-align: center; }
+    .row { margin: 18px 0; }
+  </style>
+</head>
+<body>
+  <h1>Договор перевозки</h1>
+  <p>Тендер: {{ contract.tender_title }}</p>
+  <p>Заказчик: {{ contract.customer_name }}</p>
+  <p>Перевозчик: {{ contract.carrier_name }}, ИНН {{ contract.carrier_inn }}</p>
+  <p>Стоимость: {{ contract.amount }} тыйын</p>
+  <p>Идентификатор тендера: {{ contract.tender_id }}</p>
+</body>
+</html>
