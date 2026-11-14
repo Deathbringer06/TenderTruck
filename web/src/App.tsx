@@ -5,6 +5,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { TendersPage } from "./pages/TendersPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { AutoBidPage } from "./pages/AutoBidPage";
 
 export default function App() {
   return (
@@ -13,7 +15,9 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/tenders" element={<TendersPage />} />
+          <Route path="/auto-bids" element={<AutoBidPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
