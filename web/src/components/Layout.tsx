@@ -1,9 +1,10 @@
-import { LogOut, PackageSearch, User } from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { LogOut, FileText, User } from "lucide-react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearToken, getEmail } from "../lib/auth";
 
 export function Layout() {
   const navigate = useNavigate();
+  const email = getEmail();
 
   function logout(): void {
     clearToken();
@@ -11,46 +12,31 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f6f7]">
-      <aside className="fixed inset-y-0 left-0 w-[240px] border-r border-border bg-white">
-        <div className="flex h-[64px] items-center border-b border-border px-5">
-          <PackageSearch size={20} className="mr-2 text-signal" />
+    <div className="min-h-screen bg-[#F8F9FA] flex">
+      <aside className="fixed inset-y-0 left-0 w-[240px] border-r border-[#DEE2E6] bg-white">
+        <div className="flex h-[64px] items-center border-b border-[#DEE2E6] px-5">
           <span className="text-[17px] font-semibold">TenderTruck</span>
         </div>
-        <nav className="p-3">
-          <a
-            href="/tenders"
-            className="flex h-10 items-center rounded-control border border-[#e1e3e5] bg-[#f7f8f9] px-3 text-sm font-medium"
-          >
-            Tenders
-          </a>
-          <a
-            href="/profile"
-            className="mt-2 flex h-10 items-center gap-2 rounded-control border border-[#e1e3e5] bg-[#f7f8f9] px-3 text-sm font-medium"
-          >
-            <User size={16} />
-            Profile
-          </a>
+        <nav className="p-3 space-y-1">
+          <NavLink to="/tenders" className={({isActive}) => `flex h-10 items-center gap-2 rounded-md px-3 text-sm font-medium ${isActive ? "bg-[#F8F9FA] border border-[#DEE2E6]" : "hover:bg-gray-50"}`}>
+            <FileText size={16} /> Тендеры
+          </NavLink>
+          <NavLink to="/profile" className={({isActive}) => `flex h-10 items-center gap-2 rounded-md px-3 text-sm font-medium ${isActive ? "bg-[#F8F9FA] border border-[#DEE2E6]" : "hover:bg-gray-50"}`}>
+            <User size={16} /> Профиль
+          </NavLink>
         </nav>
       </aside>
-      <div className="ml-[240px]">
-        <header className="flex h-[64px] items-center justify-between border-b border-border bg-white px-6">
-          <span className="text-sm font-medium text-secondary">Operations</span>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-secondary">{getEmail() ?? "Signed in"}</span>
-            <button
-            type="button"
-            onClick={logout}
-            className="flex h-8 items-center gap-2 rounded-control border border-border bg-white px-3 text-sm hover:bg-[#f7f8f9]"
-          >
-            <LogOut size={16} />
-            Log out
-          </button>
+      <div className="flex-1 ml-[240px]">
+        <header className="h-16 border-b border-[#DEE2E6] bg-white flex items-center justify-between px-6">
+          <div className="text-sm font-medium text-gray-700">Операции</div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">{email}</span>
+            <button onClick={logout} className="flex items-center gap-1 text-sm text-gray-600 hover:text-black">
+              <LogOut size={16} /> Выйти
+            </button>
           </div>
         </header>
-        <main className="p-6">
-          <Outlet />
-        </main>
+        <main className="p-6"><Outlet /></main>
       </div>
     </div>
   );

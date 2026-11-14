@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.app.core.exceptions import NotFoundError, ValidationError
+from src.modules.auto_bids.service import process_auto_bids
 from src.modules.bids.models import Bid
 from src.modules.tenders.models import Tender, TenderStatus
 
@@ -52,4 +53,5 @@ def place_bid(
     session.add(bid)
     session.commit()
     session.refresh(bid)
+    process_auto_bids(session, tender_id, price)
     return bid

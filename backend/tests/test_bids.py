@@ -40,4 +40,6 @@ def test_place_bid_lowers_current_price() -> None:
 
         bid = place_bid(session, tender.id, carrier.id, 9800, "bid-1")
         assert bid.price == 9800
-        assert session.get(Tender, tender.id).current_price == 9800
+        tender_after = session.get(Tender, tender.id)
+        assert tender_after is not None
+        assert tender_after.current_price == 9800
